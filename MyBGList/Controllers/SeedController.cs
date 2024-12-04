@@ -94,7 +94,8 @@ namespace MyBGList.Controllers
                                     LastModifiedDate = now
                                 };
                                 _context.Domains.Add(domain);
-                                //existingDomains.Add(domainName, domain);
+                                // import to avoid adding the same entry for the second time
+                                existingDomains.Add(domainName, domain);
 
                                 _context.BoardGames_Domains.Add(new BoardGames_Domains
                                 {
@@ -123,7 +124,8 @@ namespace MyBGList.Controllers
                                     LastModifiedDate= now
                                 };
                                 _context.Mechanics.Add(mechanic);
-                                //existingMechanics.Add(mechanicName, mechanic);
+                                // import to avoid adding the same entry for the second time
+                                existingMechanics.Add(mechanicName, mechanic);
 
                                 _context.BoardGames_Mechanics.Add(new BoardGames_Mechanics
                                 {
