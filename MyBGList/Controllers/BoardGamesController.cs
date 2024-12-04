@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using MyBGList.Attributes;
 using MyBGList.DTO;
 using MyBGList.Models;
+using System.ComponentModel.DataAnnotations;
 using System.Linq.Dynamic.Core;
 
 namespace MyBGList.Controllers
@@ -25,9 +27,9 @@ namespace MyBGList.Controllers
         [ResponseCache(Location = ResponseCacheLocation.Any, Duration = 60)]
         public async Task<RestDTO<BoardGame[]>> Get(
             int pageIndex = 0,
-            int pageSize = 10,
-            string? sortColumn = "Name",
-            string? sortOrder = "ASC",
+            [Range(1, 100)] int pageSize = 10,
+            [SortColumnValidator(typeof(BoardGameDTO))] string? sortColumn = "Name",
+            [SortOrderValidator] string? sortOrder = "ASC",
             string? filter = null)
         {
             // This only prepare the query to be executed in DBMS when called .ToArrayAsync()
