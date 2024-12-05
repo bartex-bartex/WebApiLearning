@@ -24,7 +24,7 @@ namespace MyBGList.Controllers
 
         [HttpGet("GetBoardGames")]
         [ResponseCache(Location = ResponseCacheLocation.Any, Duration = 60)]
-        public async Task<RestDTO<BoardGame[]>> Get([FromQuery] RequestDTO input)
+        public async Task<RestDTO<BoardGame[]>> Get([FromQuery] RequestDTO<BoardGameDTO> input)
         {
             // This only prepare the query to be executed in DBMS when called .ToArrayAsync()
             var query = _context.BoardGames.AsQueryable();

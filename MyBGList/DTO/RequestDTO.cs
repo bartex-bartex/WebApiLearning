@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace MyBGList.DTO
 {
-    public class RequestDTO
+    public class RequestDTO<T> : IValidatableObject
     {
         [DefaultValue(0)] // For SwaggerGen to generate proper defaults in swagger.json
         public int PageIndex { get; set; } = 0;
@@ -14,7 +14,6 @@ namespace MyBGList.DTO
         public int PageSize { get; set; } = 10;
 
         [DefaultValue("Name")]
-        [SortColumnValidator(typeof(BoardGameDTO))]
         public string? SortColumn { get; set; } = "Name";
 
         [DefaultValue("ASC")]
@@ -23,5 +22,13 @@ namespace MyBGList.DTO
 
         [DefaultValue(null)]
         public string? Filter { get; set; } = null;
+
+        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        {
+            var validator = new SortColumnValidatorAttribute(typeof(T));
+            var result = validator.GetValidationResult(SortColumn, validationContext);
+
+            return (result != null) ? new[] { result } : new ValidationResult[0];
+        }
     }
 }
