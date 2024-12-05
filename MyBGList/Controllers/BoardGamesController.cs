@@ -22,41 +22,35 @@ namespace MyBGList.Controllers
             _logger = logger;
         }
 
-        // TODO: Add error handling
         [HttpGet("GetBoardGames")]
         [ResponseCache(Location = ResponseCacheLocation.Any, Duration = 60)]
-        public async Task<RestDTO<BoardGame[]>> Get(
-            int pageIndex = 0,
-            [Range(1, 100)] int pageSize = 10,
-            [SortColumnValidator(typeof(BoardGameDTO))] string? sortColumn = "Name",
-            [SortOrderValidator] string? sortOrder = "ASC",
-            string? filter = null)
+        public async Task<RestDTO<BoardGame[]>> Get([FromQuery] RequestDTO input)
         {
             // This only prepare the query to be executed in DBMS when called .ToArrayAsync()
             var query = _context.BoardGames.AsQueryable();
 
             // filter
-            if (!string.IsNullOrEmpty(filter))
+            if (!string.IsNullOrEmpty(input.Filter))
             {
-                query = query.Where(x => x.Name.Contains(filter));
+                query = query.Where(x => x.Name.Contains(input.Filter));
             }
             var recordsCount = await query.CountAsync();
 
             // sort
             query = query
-                .OrderBy($"{sortColumn} {sortOrder}")
-                .Skip(pageIndex * pageSize)
-                .Take(pageSize);
+                .OrderBy($"{input.SortColumn} {input.SortOrder}")
+                .Skip(input.PageIndex * input.PageSize)
+                .Take(input.PageSize);
 
             return new RestDTO<BoardGame[]>
             {
                 Data = await query.ToArrayAsync(),
-                PageIndex = pageIndex,
-                PageSize = pageSize,
+                PageIndex = input.PageIndex,
+                PageSize = input.PageSize,
                 RecordsCount = recordsCount,
                 Links = new List<LinkDTO>
                 {
-                    new LinkDTO(Url.Action(null, "BoardGames", new { pageIndex, pageSize, sortColumn, sortOrder, filter }, Request.Scheme), "self", "GET")
+                    new LinkDTO(Url.Action(null, "BoardGames", new { input.PageIndex, input.PageSize }, Request.Scheme)!, "self", "GET")
                 }
             };
         }
