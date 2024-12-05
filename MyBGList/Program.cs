@@ -14,7 +14,13 @@ namespace MyBGList
             var builder = WebApplication.CreateBuilder(args);
             // Add services to the container.
 
-            builder.Services.AddControllers();
+            builder.Services.AddControllers(options =>
+            {
+                options.ModelBindingMessageProvider.SetValueIsInvalidAccessor(x => $"The value '{x}' is invalid.");
+                options.ModelBindingMessageProvider.SetValueMustBeANumberAccessor(x => $"The field {x} must be a number.");
+                options.ModelBindingMessageProvider.SetAttemptedValueIsInvalidAccessor((x, y) => $"The value '{y}' is not valid for {x}.");
+                options.ModelBindingMessageProvider.SetMissingKeyOrValueAccessor(() => "A value is required.");
+            });
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen(options =>
@@ -28,6 +34,11 @@ namespace MyBGList
                 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
                 options.UseSqlServer(connectionString);
+            });
+
+            builder.Services.Configure<ApiBehaviorOptions>(options =>
+            {
+                options.SuppressModelStateInvalidFilter = true;
             });
 
             var app = builder.Build();

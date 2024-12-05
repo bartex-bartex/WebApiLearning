@@ -22,8 +22,32 @@ namespace MyBGList.Controllers
 
         [HttpGet("GetDomains")]
         [ResponseCache(Location = ResponseCacheLocation.Any, Duration = 60)]
-        public async Task<RestDTO<Domain[]?>> Get([FromQuery] RequestDTO<DomainDTO> input)
-        {
+        public async Task<ActionResult<RestDTO<Domain[]?>>> Get([FromQuery] RequestDTO<DomainDTO> input)
+        { // Unless you want to return anything else, you can stay with "ActionResult"
+            
+            if (!ModelState.IsValid)
+            {
+                var details = new ValidationProblemDetails(ModelState);
+                details.Extensions["traceId"] = System.Diagnostics.Activity.Current?.Id ?? HttpContext.TraceIdentifier;
+
+                // Check key errors collection
+                if (ModelState.Keys.Any(k => k == "PageSize"))
+                {
+                    details.Type = "https://tools.ietf.org/html/rfc7231#section-6.6.2";
+                    details.Status = StatusCodes.Status501NotImplemented;
+                    return new ObjectResult(details)
+                    {
+                        StatusCode = StatusCodes.Status501NotImplemented
+                    };
+                }
+                else
+                {
+                    details.Type = "https://tools.ietf.org/html/rfc7231#section-6.5.1";
+                    details.Status = StatusCodes.Status400BadRequest;
+                    return new BadRequestObjectResult(details);
+                }
+            }
+
             // get Queryable object
             var query = _context.Domains.AsQueryable();
 
