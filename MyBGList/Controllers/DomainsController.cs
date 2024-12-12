@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using MyBGList.Attributes;
 using MyBGList.DTO;
 using MyBGList.Models;
 using System.Linq.Dynamic.Core;
@@ -22,6 +23,7 @@ namespace MyBGList.Controllers
 
         [HttpGet("GetDomains")]
         [ResponseCache(Location = ResponseCacheLocation.Any, Duration = 60)]
+        [ManualValidationFilter]
         public async Task<ActionResult<RestDTO<Domain[]?>>> Get([FromQuery] RequestDTO<DomainDTO> input)
         { // Unless you want to return anything else, you can stay with "ActionResult"
             

@@ -36,11 +36,6 @@ namespace MyBGList
                 options.UseSqlServer(connectionString);
             });
 
-            builder.Services.Configure<ApiBehaviorOptions>(options =>
-            {
-                options.SuppressModelStateInvalidFilter = true;
-            });
-
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
