@@ -1,9 +1,11 @@
 using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MyBGList.Controllers;
 using MyBGList.Models;
 using MyBGList.Swagger;
+using System.Text.Json;
 
 namespace MyBGList
 {
@@ -51,7 +53,31 @@ namespace MyBGList
             }
             else
             {
-                app.UseExceptionHandler("/error");
+                app.UseExceptionHandler(action =>
+                {
+                    action.Run(async context =>
+                    {
+                        if (context.Request.Method == HttpMethods.Get)
+                        {
+                            context.Response.Redirect("/error");
+                            return;
+                        }
+
+                        var exceptionHandler = context.Features.Get<IExceptionHandlerPathFeature>();
+
+                        // logging, sending notification, ...
+
+                        var details = new ProblemDetails();
+                        details.Detail = exceptionHandler?.Error.Message;
+                        details.Extensions["traceId"] = System.Diagnostics.Activity.Current?.Id ?? context.TraceIdentifier;
+                        details.Extensions["customKey"] = "To jest overloaded ExceptionHandler";
+                        details.Type = "https://tools.ietf.org/html/rfc7231#section-6.6.1";
+                        details.Status = StatusCodes.Status500InternalServerError;
+
+                        await context.Response.WriteAsync(JsonSerializer.Serialize(details));
+
+                    });
+                });
             }
             
             app.UseHttpsRedirection();
@@ -69,16 +95,33 @@ namespace MyBGList
                     "</script>" +
                     "<noscript>Your client does not support JavaScript</noscript>",
                     "text/html");
+            });            
+
+            // Shown, when any exception occure (handles only GET methods)
+            app.MapGet("/error", (HttpContext context) =>
+            {
+                var exceptionHandler = context.Features.Get<IExceptionHandlerPathFeature>();
+
+                // logging, sending notification, ...
+
+                var details = new ProblemDetails();
+                details.Detail = exceptionHandler?.Error.Message;
+                details.Extensions["traceId"] = System.Diagnostics.Activity.Current?.Id ?? context.TraceIdentifier;
+                details.Type = "https://tools.ietf.org/html/rfc7231#section-6.6.1";
+                details.Status = StatusCodes.Status500InternalServerError;
+                return Results.Problem(details);  // return details; - seems to work the same
             });
 
-            // Shown, when any exception occure
-            app.MapGet("/error", () => { return "This page occure when error happens in the mean time."; });
+            app.MapPost("/error/test2", () =>
+            {
+                throw new Exception("This is POST!");
+            });
 
             // Simulate exceptions
             app.MapGet("/error/test", () => 
-                { 
-                    throw new Exception("Tusom!"); 
-                });
+            { 
+                throw new Exception("Tusom!"); 
+            });
             
             app.MapControllers();
 
