@@ -26,6 +26,8 @@ namespace MyBGList.Controllers
         [ResponseCache(Location = ResponseCacheLocation.Any, Duration = 60)]
         public async Task<RestDTO<BoardGame[]>> Get([FromQuery] RequestDTO<BoardGameDTO> input)
         {
+            _logger.LogInformation(50101, "GetBoardGames action {SortColumn} started", input.SortColumn);
+
             // This only prepare the query to be executed in DBMS when called .ToArrayAsync()
             var query = _context.BoardGames.AsQueryable();
 
@@ -41,6 +43,8 @@ namespace MyBGList.Controllers
                 .OrderBy($"{input.SortColumn} {input.SortOrder}")
                 .Skip(input.PageIndex * input.PageSize)
                 .Take(input.PageSize);
+
+            _logger.LogCritical(50101, "Returning");
 
             return new RestDTO<BoardGame[]>
             {

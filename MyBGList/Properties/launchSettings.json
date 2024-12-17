@@ -15,9 +15,9 @@
       "launchBrowser": true,
       "launchUrl": "swagger",  // startup page
       "applicationUrl": "https://localhost:40080;http://localhost:40443",
-      //"environmentVariables": {
-      //  "ASPNETCORE_ENVIRONMENT": "Staging"
-      //}
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
     },
     "IIS Express": {
       "commandName": "IISExpress",
