@@ -1,7 +1,9 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MyBGList.Attributes;
+using MyBGList.Constants;
 using MyBGList.DTO;
 using MyBGList.Models;
 using System.ComponentModel.DataAnnotations;
@@ -61,6 +63,7 @@ namespace MyBGList.Controllers
 
         [HttpPost("UpdateBoardGame")]
         [ResponseCache(NoStore = true)]
+        [Authorize(Roles = RoleNames.Moderator)]
         public async Task<RestDTO<BoardGame?>> Post(BoardGameDTO model)
         {
             var boardGame = await _context.BoardGames
@@ -97,6 +100,7 @@ namespace MyBGList.Controllers
 
         [HttpDelete("DeleteBoardGame")]
         [ResponseCache(NoStore = true)]
+        [Authorize(Roles = RoleNames.Administrator)]
         public async Task<RestDTO<BoardGame?>> Delete(int id)
         {
             var boardGame = await _context.BoardGames

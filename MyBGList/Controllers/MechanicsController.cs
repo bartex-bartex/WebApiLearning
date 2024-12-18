@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using MyBGList.Constants;
 using MyBGList.DTO;
 using MyBGList.Models;
 using System.Linq.Dynamic.Core;
@@ -55,6 +57,7 @@ namespace MyBGList.Controllers
 
         [HttpPost("UpdateMechanic")]
         [ResponseCache(NoStore = true)]
+        [Authorize(Roles = RoleNames.Moderator)]
         public async Task<RestDTO<Mechanic?>> Post(MechanicDTO model)
         {
             var mechanic = await _context.Mechanics
@@ -85,6 +88,7 @@ namespace MyBGList.Controllers
 
         [HttpDelete("DeleteMechanic")]
         [ResponseCache(NoStore = true)]
+        [Authorize(Roles = RoleNames.Administrator)]
         public async Task<RestDTO<Mechanic?>> Delete(int id)
         {
             var mechanic = await _context.Mechanics

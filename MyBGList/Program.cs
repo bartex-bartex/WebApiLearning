@@ -1,10 +1,13 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+using MyBGList.Constants;
 using MyBGList.Controllers;
 using MyBGList.Models;
 using MyBGList.Swagger;
@@ -37,7 +40,7 @@ public class Program
                     TableName = "LogEvents",
                     AutoCreateSqlTable = true
                 },
-                columnOptions: new ColumnOptions()  
+                columnOptions: new ColumnOptions()
                 {
                     AdditionalColumns = new SqlColumn[]
                     {
@@ -64,6 +67,31 @@ public class Program
         {
             options.ParameterFilter<SortOrderFilter>();
             options.ParameterFilter<SortColumnFilter>();
+
+            options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+            {
+                In = ParameterLocation.Header,
+                Description = "Please enter token",
+                Name = "Authorization",
+                Type = SecuritySchemeType.Http,
+                BearerFormat = "JWT",
+                Scheme = "bearer"
+            });
+
+            options.AddSecurityRequirement(new OpenApiSecurityRequirement
+            {
+                {
+                    new OpenApiSecurityScheme
+                    {
+                        Reference = new OpenApiReference
+                        {
+                            Type = ReferenceType.SecurityScheme,
+                            Id = "Bearer"
+                        }
+                    },
+                    Array.Empty<string>()
+                }
+            });
         });
         builder.Services.AddCors();
         builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -145,7 +173,9 @@ public class Program
                 });
             });
         }
-        
+
+        app.UseResponseCaching();
+
         app.UseHttpsRedirection();
         app.UseAuthentication();
         app.UseAuthorization();
@@ -162,7 +192,7 @@ public class Program
                 "</script>" +
                 "<noscript>Your client does not support JavaScript</noscript>",
                 "text/html");
-        });            
+        });
 
         // Shown, when any exception occure (handles only GET methods)
         app.MapGet("/error", (HttpContext context) =>
@@ -186,11 +216,33 @@ public class Program
         });
 
         // Simulate exceptions
-        app.MapGet("/error/test", () => 
-        { 
-            throw new Exception("Tusom!"); 
+        app.MapGet("/error/test", () =>
+        {
+            throw new Exception("Tusom!");
         });
-        
+
+        // authorized test
+        app.MapGet("/auth/test/1",
+            [Authorize]
+        [ResponseCache(NoStore = true)] () =>
+        {
+            return Results.Ok("You are authorized!");
+        });
+
+        app.MapGet("/auth/test/2",
+            [Authorize(Roles = RoleNames.Moderator)]
+            [ResponseCache(NoStore = true)] () =>
+        {
+            return Results.Ok("You are authorized!");
+        });
+
+        app.MapGet("/auth/test/3",
+            [Authorize(Roles = RoleNames.Administrator)]
+            [ResponseCache(NoStore = true)] () =>
+        {
+            return Results.Ok("You are authorized!");
+        });
+
         app.MapControllers();
 
         app.Run();
